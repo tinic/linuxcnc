@@ -1,0 +1,25 @@
+# Include your custom HAL commands here
+# This file will not be overwritten when you run PNCconf again
+
+# external output signals
+
+loadrt not count=3
+
+addf not.0 servo-thread
+addf not.1 servo-thread
+addf not.2 servo-thread
+
+# --- MACHINE-IS-ENABLED ---
+net ssr0out not.0.out hm2_7i96.0.ssr.00.out-00
+net machine-is-enabled not.0.in 
+
+# --- MACHINE-IS-ENABLED ---
+net ssr1out not.1.out hm2_7i96.0.ssr.00.out-01
+net machine-is-enabled not.1.in 
+
+# --- MACHINE-IS-ENABLED ---
+net ssr2out not.2.out hm2_7i96.0.ssr.00.out-02
+net machine-is-enabled not.2.in 
+
+setp    hm2_7i96.0.encoder.00.counter-mode 0
+
