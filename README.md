@@ -18,7 +18,13 @@ PD-06 0
 PD-08 0
 ```
 
-Modbus registers:
+Modbus read/write registers:
+
+```
+0x1000 { 0-10000: 0-100% speed}
+```
+
+Modbus write registers:
 
 ```
 0x2000 { 1: Forward run
