@@ -21,7 +21,7 @@ PD-08 0
 Modbus read/write registers:
 
 ```
-0x1000 { 0-10000: 0-100% speed in %/10}
+0x1000 { 0-10000: 0-100% speed in %/100}
 ```
 
 Modbus read registers:
