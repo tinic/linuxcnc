@@ -21,7 +21,19 @@ PD-08 0
 Modbus read/write registers:
 
 ```
-0x1000 { 0-10000: 0-100% speed}
+0x1000 { 0-10000: 0-100% speed in %/10}
+```
+
+Modbus read registers:
+
+```
+0x1001 { 0-12000: running frequency in Hz/100 }
+0x1002 { 0-800: DC BUS voltage V/10 }
+0x1003 { 0-800: Output voltage V }
+0x1004 { 0-800: Output current A/100 }
+0x100F { 0-12000: setting frequency in Hz/100 }
+0x101D { 0-10000: 0-100% speed in %/10 }
+0x101F { 0-12000: setting frequency in Hz/100 }
 ```
 
 Modbus write registers:
