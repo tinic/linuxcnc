@@ -18,11 +18,16 @@ PD-06 0
 PD-08 0
 ```
 
+- Serial settings: 9600 baud, 8N2
+- Slave address is 1
+- All modbus registers are 16-bit.
+
 Modbus read/write registers:
 
 ```
 0x1000 { 0-10000: 0-100% speed in %/100}
 ```
+
 
 Modbus read registers:
 
