@@ -36,9 +36,9 @@ Modbus read registers:
 0x1002 { 0-800: DC BUS voltage V/10 }
 0x1003 { 0-800: Output voltage V }
 0x1004 { 0-800: Output current A/100 }
+0x1009 { 0-65535: input terminal }
 0x100a { 0-1000: AI1 }
 0x100b { 0-1000: AI2? }
-0x100c { 0-1000: AI3? }
 0x100F { 0-12000: setting frequency in Hz/100 }
 0x101D { 0-10000: 0-100% speed in %/10 }
 0x101F { 0-12000: setting frequency in Hz/100 }
