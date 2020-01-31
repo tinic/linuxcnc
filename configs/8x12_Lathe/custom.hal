@@ -21,5 +21,13 @@ net machine-is-enabled not.1.in
 net ssr2out not.2.out hm2_7i96.0.ssr.00.out-02
 net machine-is-enabled not.2.in 
 
-setp    hm2_7i96.0.encoder.00.counter-mode 0
+# A/B quadrature
+setp hm2_7i96.0.encoder.00.counter-mode 0
+
+loadusr -Wn svd-ps_vfd svd-ps_vfd -S 1400 -F 80 -f 5
+
+net spindle-vel-cmd-rpm => svd-ps_vfd.speed-cmd
+net spindle-enable => svd-ps_vfd.spindle-on
+net spindle-cw => svd-ps_vfd.spindle-forward
+net spindle-ccw => svd-ps_vfd.spindle-reverse
 
