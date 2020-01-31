@@ -37,6 +37,7 @@ Modbus read registers:
 0x1003 { 0-800: Output voltage V }
 0x1004 { 0-800: Output current A/100 }
 0x1005 { 0-10000: 0-100% running speed in %/10 }
+0x1006 { 0-10000: output power }
 0x1009 { 0-65535: input terminal }
 0x100a { 0-1000: AI1 }
 0x100b { 0-1000: AI2? }
