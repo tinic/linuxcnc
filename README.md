@@ -1,7 +1,7 @@
 # linuxcnc
 Personal LinuxCNC configurations
 
-Notes on the SVD-PS VFD (LAPOND, Shenzhen Soyanpower New Energy Co.,Ltd)
+Notes on the SVD-PS or SVD-P VFD (LAPOND, Shenzhen Soyanpower New Energy Co.,Ltd)
 
 Docs: http://www.soyan-tech.com/uploads/20189675/PDF/SVD-p-User-Manual.pdf
 
