@@ -1,0 +1,3 @@
+[submodule "configs/8x12_Lathe/LatheMacros"]
+	path = configs/8x12_Lathe/LatheMacros
+	url = https://github.com/tinic/LatheMacros.git
