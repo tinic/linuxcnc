@@ -68,4 +68,8 @@ run_from_line = no_run
 unlock_way = no
 show_preview_on_offset = False
 use_keyboard_shortcuts = False
+offset_axis_z = 0.0
+radius offset_axis_x = 0
+offset_axis_x = 43.5
+tool_in_spindle = 1
 
