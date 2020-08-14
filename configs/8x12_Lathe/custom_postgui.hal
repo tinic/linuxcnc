@@ -1,2 +1,13 @@
 # Include your custom_postgui HAL commands here
 # This file will not be overwritten when you run PNCconf again
+
+net   tool-change        gmoccapy.toolchange-change   <=  iocontrol.0.tool-change 
+net   tool-changed       gmoccapy.toolchange-changed  <=  iocontrol.0.tool-changed
+net   tool-prep-number   gmoccapy.toolchange-number   <=  iocontrol.0.tool-prep-number
+net   tool-prep-loop     iocontrol.0.tool-prepare     =>  iocontrol.0.tool-prepared
+
+net   tooloffset-x       gmoccapy.tooloffset-x        <=  motion.tooloffset.x
+net   tooloffset-z       gmoccapy.tooloffset-z        <=  motion.tooloffset.z
+
+net hm2_7i76e.0.7i76.0.0.spinout    => gmoccapy.spindle_feedback_bar
+
