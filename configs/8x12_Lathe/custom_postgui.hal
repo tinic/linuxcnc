@@ -9,5 +9,6 @@ net   tool-prep-loop     iocontrol.0.tool-prepare     =>  iocontrol.0.tool-prepa
 net   tooloffset-x       gmoccapy.tooloffset-x        <=  motion.tooloffset.x
 net   tooloffset-z       gmoccapy.tooloffset-z        <=  motion.tooloffset.z
 
-net hm2_7i76e.0.7i76.0.0.spinout    => gmoccapy.spindle_feedback_bar
+net   spindle-rpm gmoccapy.spindle_feedback_bar
+net   spindle-at-speed gmoccapy.spindle_at_speed_led
 
