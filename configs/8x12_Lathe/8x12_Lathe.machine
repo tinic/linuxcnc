@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<machine xmlns="http://www.hsmworks.com/xml/2009/machine">
+
+  <vendor>Harbor Freight</vendor>
+
+  <model>8x12</model>
+
+  <description>Lathe</description>
+
+  <control></control>
+
+  <machining additive="no" jet="no" milling="no" turning="yes"/>
+
+  <dimensions depth="0mm" height="0mm" weight="0kg" width="0mm"/>
+
+  <capacities depth="0mm" height="0mm" weight="0kg" width="0mm"/>
+
+  <png128></png128>
+
+  <mtk></mtk>
+
+  <coolant options="FLOOD MIST THROUGH_TOOL AIR AIR_THROUGH_TOOL SUCTION FLOOD_MIST FLOOD_THROUGH_TOOL"/>
+
+  <multiAxis adjust="yes" angle="10deg" cone="3deg" feedRateType="inverse" linearizationTolerance="0.040000000000000001mm" method="off" reconfigure="yes" tolerance="0.040000006224212022mm"/>
+
+  <tooling maximumToolDiameter="0mm" maximumToolLength="0mm" maximumToolWeight="0kg" numberOfTools="7" toolChanger="yes" toolPreload="yes"/>
+
+  <machiningTime ratio="1" toolChangeTime="15s"/>
+
+  <capabilities maximumBlockProcessingSpeed="0" maximumFeedrate="0mm/min" workOffsets="100"/>
+
+  <simulation retractOnIndexing="yes" shortestAngularRotation="yes" wcs="0mm 0mm 0mm">
+    <machineAssembly></machineAssembly>
+  </simulation>
+
+  <post>
+    <postProcessor>user://linuxcnc turning.cps</postProcessor>
+    <postProperties>
+      <Parameters>
+        <Parameter expression="false" name="writeMachine" value="false"/>
+        <Parameter expression="false" name="writeTools" value="false"/>
+        <Parameter expression="1" name="sequenceNumberIncrement" value="1"/>
+        <Parameter expression="10" name="sequenceNumberStart" value="10"/>
+        <Parameter expression="true" name="showSequenceNumbers" value="true"/>
+        <Parameter expression="0" hexValue="0x0000000000000000" name="g53HomePositionX" value="0"/>
+        <Parameter expression="0" hexValue="0x0000000000000000" name="g53HomePositionZ" value="0"/>
+        <Parameter expression="3500" name="maximumSpindleSpeed" value="3500"/>
+        <Parameter expression="true" name="optionalStop" value="true"/>
+        <Parameter expression="true" name="separateWordsWithSpace" value="true"/>
+        <Parameter expression="false" name="showNotes" value="false"/>
+        <Parameter expression="'L0'" name="threadTaperType" value="L0"/>
+        <Parameter expression="true" name="useCycles" value="true"/>
+        <Parameter expression="false" name="useRadius" value="false"/>
+        <Parameter expression="false" name="builtin_allowHelicalMoves" value="false"/>
+        <Parameter expression="'0'" name="builtin_highFeedMapping" value="0"/>
+        <Parameter expression="0" hexValue="0x0000000000000000" name="builtin_highFeedrate" value="0"/>
+        <Parameter expression="1000" hexValue="0x408f400000000000" name="builtin_maximumCircularRadius" value="1000"/>
+        <Parameter expression="0.25" hexValue="0x3fd0000000000000" name="builtin_minimumChordLength" value="0.25"/>
+        <Parameter expression="0.01" hexValue="0x3f847ae147ae147b" name="builtin_minimumCircularRadius" value="0.01"/>
+        <Parameter expression="0.002" hexValue="0x3f60624dd2f1a9fc" name="builtin_tolerance" value="0.002"/>
+      </Parameters>
+    </postProperties>
+    <setupSheet></setupSheet>
+    <setupSheetProperties/>
+  </post>
+
+  <axis actuator="linear" coordinate="X" homePosition="0mm" id="X" link="table" maximumFeed="0mm/min" name="" offset="0mm 0mm 0mm" range="0mm 0mm" rapidFeed="0mm/min" resolution="0mm"/>
+
+  <axis actuator="linear" coordinate="Y" homePosition="0mm" id="Y" link="table" maximumFeed="0mm/min" name="" offset="0mm 0mm 0mm" range="0mm 0mm" rapidFeed="0mm/min" resolution="0mm"/>
+
+  <axis actuator="linear" coordinate="Z" homePosition="0mm" id="Z" link="table" maximumFeed="0mm/min" name="" offset="0mm 0mm 0mm" range="0mm 0mm" rapidFeed="0mm/min" resolution="0mm"/>
+
+  <axis actuator="rotational" axis="0 0 1" coordinate="Z" cyclic="no" homePosition="0deg" id="U" link="head" maximumFeed="0deg/min" name="" offset="0mm 0mm 0mm" preference="dont care" range="0deg 360deg" rapidFeed="0deg/min" resolution="0deg" tcp="yes"/>
+
+  <spindle axis="0 0 1" maximumSpeed="0rpm" minimumSpeed="0rpm">
+    <description></description>
+  </spindle>
+
+</machine>
