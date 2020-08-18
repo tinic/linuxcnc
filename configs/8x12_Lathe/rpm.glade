@@ -13,7 +13,7 @@
 	    <property name="force_size">200</property>
             <property name="visible">True</property>
             <property name="min">0</property>
-            <property name="max">2000</property>
+            <property name="max">1500</property>
             <property name="majorscale">500</property>
             <property name="minorscale">100</property>
             <property name="bg_color">#ffffffffffff</property>
