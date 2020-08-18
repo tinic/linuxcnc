@@ -28,6 +28,4 @@ loadusr -Wn svd-ps_vfd svd-ps_vfd -S 1400 -F 80 -f 5
 
 net spindle-vel-cmd-rpm => svd-ps_vfd.speed-cmd
 net spindle-enable => svd-ps_vfd.spindle-on
-net spindle-cw => svd-ps_vfd.spindle-forward
-net spindle-ccw => svd-ps_vfd.spindle-reverse
 
