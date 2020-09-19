@@ -20,7 +20,6 @@
             <property name="majorscale">500</property>
             <property name="max">1500</property>
             <property name="minorscale">100</property>
-            <property name="text_template"/>
             <property name="z0_border">250</property>
             <property name="z0_color">#ffffffff0000</property>
             <property name="z1_color">#0000ffff0000</property>
