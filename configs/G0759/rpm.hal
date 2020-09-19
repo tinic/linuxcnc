@@ -1,0 +1,4 @@
+net spindle-vel-fb-rpm-abs => rpm.rpm_meter
+setp rpm.hal_table 1
+
+

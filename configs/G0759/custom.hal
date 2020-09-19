@@ -1,2 +1,18 @@
 # Include your custom HAL commands here
 # This file will not be overwritten when you run PNCconf again
+
+loadrt not count=3
+loadrt limit1 count=1
+
+addf not.0 servo-thread
+addf not.1 servo-thread
+addf not.2 servo-thread
+addf limit1.0 servo-thread
+
+loadusr -Wn svd-ps_vfd svd-ps_vfd -S [SPINDLE]MAX_RPM -F [SPINDLE]MAX_FREQ -f 5 -d /dev/ttyUSB0 
+
+net spindle-vel-cmd-rpm => limit1.0.in
+net spindle-vel-cmd-rpm-limited <= limit1.0.out
+
+net spindle-vel-cmd-rpm-limited => svd-ps_vfd.speed-cmd
+net spindle-enable => svd-ps_vfd.spindle-on
