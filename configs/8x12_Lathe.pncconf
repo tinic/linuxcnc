@@ -184,7 +184,7 @@
   <property name="gs2_vfd_accel" type="int" value="10"/>
   <property name="gs2_vfd_baud" type="int" value="9600"/>
   <property name="gs2_vfd_deaccel" type="int" value="0"/>
-  <property name="gs2_vfd_port" type="string" value="/dev/ttyS0"/>
+  <property name="gs2_vfd_port" type="string" value="/dev/ttyUSB0"/>
   <property name="gs2_vfd_slave" type="int" value="1"/>
   <property name="gsdebounce" type="bool" value="True"/>
   <property name="gsdebouncetime" type="float" value="0.2"/>
@@ -3800,7 +3800,7 @@
   <property name="mitsub_vfd_command_scale" type="int" value="1"/>
   <property name="mitsub_vfd_feedback_scale" type="int" value="1"/>
   <property name="mitsub_vfd_id" type="string" value="('spindle_vfd', 1)"/>
-  <property name="mitsub_vfd_port" type="string" value="/dev/ttyS0"/>
+  <property name="mitsub_vfd_port" type="string" value="/dev/ttyUSB0"/>
   <property name="modbus" type="int" value="0"/>
   <property name="motor_leadscrew" type="string" value="49593"/>
   <property name="motor_leadscrew_tpi" type="string" value="49594"/>

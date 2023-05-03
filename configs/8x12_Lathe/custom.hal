@@ -28,7 +28,7 @@ setp hm2_7i96.0.encoder.00.counter-mode 0
 setp limit1.0.min 0
 setp limit1.0.max [SPINDLE]MAX_RPM
 
-loadusr -Wn svd-ps_vfd svd-ps_vfd -S [SPINDLE]MAX_RPM -F [SPINDLE]MAX_FREQ -f 5
+loadusr -Wn svd-ps_vfd svd-ps_vfd -S [SPINDLE]MAX_RPM -F [SPINDLE]MAX_FREQ -f 5 -d /dev/ttyUSB0
 
 net spindle-vel-cmd-rpm => limit1.0.in
 net spindle-vel-cmd-rpm-limited <= limit1.0.out
