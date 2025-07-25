@@ -31,9 +31,9 @@ net x-pos-fb <= rp2040-encoder.0.position-0
 net y-pos-fb <= rp2040-encoder.0.position-1
 net z-pos-fb <= rp2040-encoder.0.position-2
 
-#loadusr halcmd setp rp2040-encoder.0.reset-0 0
-#loadusr halcmd setp rp2040-encoder.0.reset-0 1
-#loadusr halcmd setp rp2040-encoder.0.reset-1 0
-#loadusr halcmd setp rp2040-encoder.0.reset-1 1
-#loadusr halcmd setp rp2040-encoder.0.reset-2 0
-#loadusr halcmd setp rp2040-encoder.0.reset-2 1
+loadusr halcmd setp rp2040-encoder.0.reset-0 0
+loadusr halcmd setp rp2040-encoder.0.reset-0 1
+loadusr halcmd setp rp2040-encoder.0.reset-1 0
+loadusr halcmd setp rp2040-encoder.0.reset-1 1
+loadusr halcmd setp rp2040-encoder.0.reset-2 0
+loadusr halcmd setp rp2040-encoder.0.reset-2 1

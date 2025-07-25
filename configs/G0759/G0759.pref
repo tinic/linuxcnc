@@ -2,7 +2,7 @@
 blockheight = 0.0
 reload_tool = False
 spindle_start_rpm = 800.0
-scale_jog_vel = 100.0
+scale_jog_vel = 400.0
 scale_spindle_override = 2.0
 scale_feed_override = 2.0
 scale_rapid_override = 2.0
