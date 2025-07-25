@@ -16,3 +16,24 @@ net spindle-vel-cmd-rpm-limited <= limit1.0.out
 
 net spindle-vel-cmd-rpm-limited => svd-ps_vfd.speed-cmd
 net spindle-enable => svd-ps_vfd.spindle-on
+
+loadusr -W rp2040_encoder
+
+setp rp2040-encoder.0.scale-0 -0.005
+setp rp2040-encoder.0.scale-1  0.005
+setp rp2040-encoder.0.scale-2  0.005
+
+unlinkp hm2_7i76e.0.stepgen.00.position-fb
+unlinkp hm2_7i76e.0.stepgen.01.position-fb
+unlinkp hm2_7i76e.0.stepgen.02.position-fb
+
+net x-pos-fb <= rp2040-encoder.0.position-0
+net y-pos-fb <= rp2040-encoder.0.position-1
+net z-pos-fb <= rp2040-encoder.0.position-2
+
+#loadusr halcmd setp rp2040-encoder.0.reset-0 0
+#loadusr halcmd setp rp2040-encoder.0.reset-0 1
+#loadusr halcmd setp rp2040-encoder.0.reset-1 0
+#loadusr halcmd setp rp2040-encoder.0.reset-1 1
+#loadusr halcmd setp rp2040-encoder.0.reset-2 0
+#loadusr halcmd setp rp2040-encoder.0.reset-2 1
