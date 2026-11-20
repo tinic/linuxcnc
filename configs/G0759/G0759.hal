@@ -39,9 +39,16 @@ setp hm2_7i76e.0.7i76.0.0.output-10-invert true
 # --- ESTOP-EXT ---
 net estop-ext     <=  hm2_7i76e.0.7i76.0.0.input-16
 
-# --- PROBE-IN ---
-# Normally-closed probe: raw input-17 is TRUE at rest and FALSE on contact (checked by turo 2026-11-16).
-net probe-in     <=  hm2_7i76e.0.7i76.0.0.input-17-not
+# --- TOOL SETTER ---
+# Two normally-closed contacts, TRUE at rest (checked by turo 2026-11-20): input-19 opens at
+# first contact and is the probe; input-17 opens further down and is the overtravel stop.
+net probe-in     <=  hm2_7i76e.0.7i76.0.0.input-19-not
+# Overtravel drops emc-enable-in like the external E-stop.
+loadrt and2 names=estop-chain
+addf estop-chain servo-thread
+net estop-ext    =>  estop-chain.in0
+net setter-ok    <=  hm2_7i76e.0.7i76.0.0.input-17 => estop-chain.in1
+net estop-ok     <=  estop-chain.out
 
 #*******************
 #  AXIS X JOINT 0
@@ -303,5 +310,5 @@ net machine-is-enabled        <=  motion.motion-enabled
 #  ---estop signals---
 
 net estop-out     <=  iocontrol.0.user-enable-out
-net estop-ext     =>  iocontrol.0.emc-enable-in
+net estop-ok      =>  iocontrol.0.emc-enable-in
 
