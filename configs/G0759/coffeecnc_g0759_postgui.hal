@@ -103,3 +103,6 @@ net ruby-tripped => jog-contact.in-1
 net ruby-probe-loaded => jog-contact.in-2
 net jog-contact-now jog-contact.out => jog-contact-edge.in
 net jog-contact-stop jog-contact-edge.out => coffeecnc-jog-stop.in-2
+
+# CoffeeCNC reports "Jog stopped: probe contact" from this level (coffeecnc PR79).
+net jog-contact-now => coffeecnc.jog-contact
