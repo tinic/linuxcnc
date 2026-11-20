@@ -43,15 +43,13 @@ net estop-ext     <=  hm2_7i76e.0.7i76.0.0.input-16
 # Tool setter: two normally-closed contacts, TRUE at rest (checked by turo 2026-11-20): input-19
 # opens at first contact and is the probe; input-17 opens further down and is the overtravel stop.
 # Ruby touch probe, tool 99: normally closed on input-18 (checked by turo 2026-11-20).
-# probe-in is the setter; while tool 99 is in the spindle it is the ruby probe or the setter, so the
-# setter can measure tool 99 and an unplugged or switched-off ruby probe does not block setter
-# probing with any other tool.
+# probe-in is the ruby probe while tool 99 is in the spindle, else the setter, so an unplugged or
+# switched-off ruby probe does not block setter probing. coffeecnc_g0759_postgui.hal lets
+# CoffeeCNC force the setter (coffeecnc.probe-setter-select), so the setter can measure tool 99.
 loadrt conv_s32_float names=probe-tool-number
 loadrt wcomp names=probe-tool-is-99
 loadrt mux_generic config="bb2"
-loadrt or2 names=ruby-or-setter
 addf probe-tool-number servo-thread
-addf ruby-or-setter servo-thread
 addf probe-tool-is-99 servo-thread
 addf mux-gen.00 servo-thread
 setp probe-tool-is-99.min 98.5
@@ -59,13 +57,14 @@ setp probe-tool-is-99.max 99.5
 net tool-number-now  iocontrol.0.tool-number => probe-tool-number.in
 net tool-number-now-f probe-tool-number.out => probe-tool-is-99.in
 net ruby-probe-loaded probe-tool-is-99.out => mux-gen.00.sel-bit-00
-net setter-tripped   hm2_7i76e.0.7i76.0.0.input-19-not => mux-gen.00.in-bit-00 ruby-or-setter.in1
-net ruby-tripped     hm2_7i76e.0.7i76.0.0.input-18-not => ruby-or-setter.in0
-net ruby-or-setter-tripped ruby-or-setter.out => mux-gen.00.in-bit-01
+net setter-tripped   hm2_7i76e.0.7i76.0.0.input-19-not => mux-gen.00.in-bit-00
+net ruby-tripped     hm2_7i76e.0.7i76.0.0.input-18-not => mux-gen.00.in-bit-01
 net probe-in     <=  mux-gen.00.out-bit
 # Overtravel drops emc-enable-in like the external E-stop.
-loadrt and2 names=estop-chain
+# probe-estop-gate is wired in coffeecnc_g0759_postgui.hal (the probe-cycle permit).
+loadrt and2 names=estop-chain,probe-estop-gate
 addf estop-chain servo-thread
+addf probe-estop-gate servo-thread
 net estop-ext    =>  estop-chain.in0
 net setter-ok    <=  hm2_7i76e.0.7i76.0.0.input-17 => estop-chain.in1
 net estop-ok     <=  estop-chain.out

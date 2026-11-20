@@ -19,11 +19,14 @@
 # for a stop (coffeecnc.jog-stop), or the watchdog has tripped because coffeecnc.heartbeat
 # stopped toggling: the program died or stalled.
 loadrt watchdog num_inputs=1
-loadrt lut5 names=coffeecnc-jog-stop,coffeecnc-jog-inhibit
+loadrt lut5 names=coffeecnc-jog-stop,coffeecnc-jog-inhibit,probe-route,probe-route-setter,probe-permit
 addf watchdog.process servo-thread
 addf watchdog.set-timeouts servo-thread
 addf coffeecnc-jog-stop servo-thread
 addf coffeecnc-jog-inhibit servo-thread
+addf probe-route servo-thread
+addf probe-route-setter servo-thread
+addf probe-permit servo-thread
 
 setp watchdog.timeout-0 0.3
 setp coffeecnc-jog-stop.function 0xD
@@ -56,3 +59,28 @@ net tool-prep-loop iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
 net spindle-vel-fb-rpm-abs => coffeecnc.spindle-rpm
 net spindle-at-speed => coffeecnc.spindle-at-speed
 net probe-in => coffeecnc.probe-input
+
+# Probe routing (PR43). G0759.hal routes the ruby probe while tool 99 is loaded, else the setter.
+# coffeecnc.probe-setter-select forces the setter: mux select = tool 99 AND NOT setter-select
+# (lut5 0x2). coffeecnc.probe-setter-selected reads back the select actually in use: NOT mux
+# select (lut5 0x1).
+unlinkp mux-gen.00.sel-bit-00
+setp probe-route.function 0x2
+setp probe-route-setter.function 0x1
+net ruby-probe-loaded => probe-route.in-0
+net probe-setter-select coffeecnc.probe-setter-select => probe-route.in-1
+net probe-route-ruby probe-route.out => mux-gen.00.sel-bit-00 probe-route-setter.in-0
+net probe-setter-selected probe-route-setter.out => coffeecnc.probe-setter-selected
+
+# Probe-cycle permit: high while no cycle is active, or while the cycle's lease and the CoffeeCNC
+# watchdog are both high. in-0 active, in-1 lease, in-2 watchdog ok: 0xD5. The permit drives
+# motion.enable and, with the physical E-stop chain (estop-ok: input-16 AND setter overtravel
+# input-17), iocontrol.0.emc-enable-in, and is read back on coffeecnc.probe-motion-permitted.
+setp probe-permit.function 0xD5
+net probe-cycle-active coffeecnc.probe-cycle-active => probe-permit.in-0
+net probe-cycle-lease coffeecnc.probe-cycle-lease => probe-permit.in-1
+net coffeecnc-watchdog-ok => probe-permit.in-2
+net probe-motion-permitted probe-permit.out => motion.enable probe-estop-gate.in1 coffeecnc.probe-motion-permitted
+unlinkp iocontrol.0.emc-enable-in
+net estop-ok => probe-estop-gate.in0
+net estop-gated probe-estop-gate.out => iocontrol.0.emc-enable-in
