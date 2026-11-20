@@ -39,10 +39,26 @@ setp hm2_7i76e.0.7i76.0.0.output-10-invert true
 # --- ESTOP-EXT ---
 net estop-ext     <=  hm2_7i76e.0.7i76.0.0.input-16
 
-# --- TOOL SETTER ---
-# Two normally-closed contacts, TRUE at rest (checked by turo 2026-11-20): input-19 opens at
-# first contact and is the probe; input-17 opens further down and is the overtravel stop.
-net probe-in     <=  hm2_7i76e.0.7i76.0.0.input-19-not
+# --- PROBES ---
+# Tool setter: two normally-closed contacts, TRUE at rest (checked by turo 2026-11-20): input-19
+# opens at first contact and is the probe; input-17 opens further down and is the overtravel stop.
+# Ruby touch probe, tool 99: normally closed on input-18 (checked by turo 2026-11-20).
+# probe-in is the ruby probe while tool 99 is in the spindle, else the setter, so an unplugged or
+# switched-off ruby probe does not block setter probing.
+loadrt conv_s32_float names=probe-tool-number
+loadrt wcomp names=probe-tool-is-99
+loadrt mux_generic config="bb2"
+addf probe-tool-number servo-thread
+addf probe-tool-is-99 servo-thread
+addf mux-gen.00 servo-thread
+setp probe-tool-is-99.min 98.5
+setp probe-tool-is-99.max 99.5
+net tool-number-now  iocontrol.0.tool-number => probe-tool-number.in
+net tool-number-now-f probe-tool-number.out => probe-tool-is-99.in
+net ruby-probe-loaded probe-tool-is-99.out => mux-gen.00.sel-bit-00
+net setter-tripped   hm2_7i76e.0.7i76.0.0.input-19-not => mux-gen.00.in-bit-00
+net ruby-tripped     hm2_7i76e.0.7i76.0.0.input-18-not => mux-gen.00.in-bit-01
+net probe-in     <=  mux-gen.00.out-bit
 # Overtravel drops emc-enable-in like the external E-stop.
 loadrt and2 names=estop-chain
 addf estop-chain servo-thread
