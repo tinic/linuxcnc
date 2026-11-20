@@ -19,7 +19,7 @@
 # for a stop (coffeecnc.jog-stop), or the watchdog has tripped because coffeecnc.heartbeat
 # stopped toggling: the program died or stalled.
 loadrt watchdog num_inputs=1
-loadrt lut5 names=coffeecnc-jog-stop,coffeecnc-jog-inhibit,probe-route,probe-route-setter,probe-permit
+loadrt lut5 names=coffeecnc-jog-stop,coffeecnc-jog-inhibit,probe-route,probe-route-setter,probe-permit,jog-contact
 addf watchdog.process servo-thread
 addf watchdog.set-timeouts servo-thread
 addf coffeecnc-jog-stop servo-thread
@@ -27,6 +27,7 @@ addf coffeecnc-jog-inhibit servo-thread
 addf probe-route servo-thread
 addf probe-route-setter servo-thread
 addf probe-permit servo-thread
+addf jog-contact servo-thread
 
 setp watchdog.timeout-0 0.3
 setp coffeecnc-jog-stop.function 0xD
@@ -84,3 +85,21 @@ net probe-motion-permitted probe-permit.out => motion.enable probe-estop-gate.in
 unlinkp iocontrol.0.emc-enable-in
 net estop-ok => probe-estop-gate.in0
 net estop-gated probe-estop-gate.out => iocontrol.0.emc-enable-in
+
+# Jog stop on contact (not E-stop). A jog stops the moment the setter's first contact
+# (input-19) opens, or the ruby probe (input-18) opens while tool 99 is loaded: jog-contact is
+# setter-tripped OR (ruby-tripped AND ruby-probe-loaded), lut5 0xEA. Only the rising edge stops,
+# as a 20 ms pulse on coffeecnc-jog-stop.in-2, so the operator can jog away while the contact
+# is still held. coffeecnc-jog-stop becomes NOT watchdog-ok OR stop request OR contact (0xFD).
+# motion.jog-stop affects jogs only; programs, MDI and probe cycles are unchanged.
+loadrt edge names=jog-contact-edge
+addf jog-contact-edge servo-thread
+setp jog-contact.function 0xEA
+setp jog-contact-edge.in-edge TRUE
+setp jog-contact-edge.out-width-ns 20000000
+setp coffeecnc-jog-stop.function 0xFD
+net setter-tripped => jog-contact.in-0
+net ruby-tripped => jog-contact.in-1
+net ruby-probe-loaded => jog-contact.in-2
+net jog-contact-now jog-contact.out => jog-contact-edge.in
+net jog-contact-stop jog-contact-edge.out => coffeecnc-jog-stop.in-2
