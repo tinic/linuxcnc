@@ -106,3 +106,14 @@ net jog-contact-stop jog-contact-edge.out => coffeecnc-jog-stop.in-2
 
 # CoffeeCNC reports "Jog stopped: probe contact" from this level (coffeecnc PR79).
 net jog-contact-now => coffeecnc.jog-contact
+
+# Jog while paused: CoffeeCNC lifts Z through an external offset while a program is paused and
+# returns it to zero before Resume. It enables the offset only while paused.
+# One count is 0.001 mm (machine units are mm).
+setp axis.z.eoffset-scale 0.001
+net coffeecnc-eoffset-z-enable coffeecnc.eoffset-z-enable => axis.z.eoffset-enable
+net coffeecnc-eoffset-z-counts coffeecnc.eoffset-z-counts => axis.z.eoffset-counts
+net coffeecnc-eoffset-z-clear coffeecnc.eoffset-z-clear => axis.z.eoffset-clear
+net eoffset-z axis.z.eoffset => coffeecnc.eoffset-z
+net eoffset-active motion.eoffset-active => coffeecnc.eoffset-active
+net eoffset-limited motion.eoffset-limited => coffeecnc.eoffset-limited
