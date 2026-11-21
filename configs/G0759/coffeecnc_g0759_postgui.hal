@@ -19,7 +19,7 @@
 # for a stop (coffeecnc.jog-stop), or the watchdog has tripped because coffeecnc.heartbeat
 # stopped toggling: the program died or stalled.
 loadrt watchdog num_inputs=1
-loadrt lut5 names=coffeecnc-jog-stop,coffeecnc-jog-inhibit,probe-route,probe-route-setter,probe-permit,jog-contact
+loadrt lut5 names=coffeecnc-jog-stop,coffeecnc-jog-inhibit,probe-route,probe-route-setter,probe-permit,jog-contact,eoffset-gate
 addf watchdog.process servo-thread
 addf watchdog.set-timeouts servo-thread
 addf coffeecnc-jog-stop servo-thread
@@ -111,7 +111,17 @@ net jog-contact-now => coffeecnc.jog-contact
 # returns it to zero before Resume. It enables the offset only while paused.
 # One count is 0.001 mm (machine units are mm).
 setp axis.z.eoffset-scale 0.001
-net coffeecnc-eoffset-z-enable coffeecnc.eoffset-z-enable => axis.z.eoffset-enable
+# The offset is enabled only while CoffeeCNC asks for it, its watchdog is OK, the program is
+# paused (HALUI), the spindle is off and no jog stop is held. in-0 request, in-1 watchdog ok,
+# in-2 paused, in-3 spindle on, in-4 jog stop: true only for 1,1,1,0,0 (index 7), 0x80.
+addf eoffset-gate servo-thread
+setp eoffset-gate.function 0x80
+net coffeecnc-eoffset-z-enable coffeecnc.eoffset-z-enable => eoffset-gate.in-0
+net coffeecnc-watchdog-ok => eoffset-gate.in-1
+net program-paused halui.program.is-paused => eoffset-gate.in-2
+net spindle-enable => eoffset-gate.in-3
+net coffeecnc-jog-stop => eoffset-gate.in-4
+net eoffset-z-enabled eoffset-gate.out => axis.z.eoffset-enable
 net coffeecnc-eoffset-z-counts coffeecnc.eoffset-z-counts => axis.z.eoffset-counts
 net coffeecnc-eoffset-z-clear coffeecnc.eoffset-z-clear => axis.z.eoffset-clear
 net eoffset-z axis.z.eoffset => coffeecnc.eoffset-z
