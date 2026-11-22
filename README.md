@@ -82,7 +82,7 @@ When a mark is taken over:
 | `HOME_INDEX_NO_ENCODER_RESET` | YES | The scale count is not reset at the mark |
 | `HOME_OFFSET`, `HOME` | 0.0 | The mark is machine zero, and the axis stays there after homing |
 | `HOME_SEQUENCE` | Z 0, X 1, Y 2 | Order of "home all" |
-| `MIN_LIMIT`, `MAX_LIMIT` | X −222.11 / 177.855, Y −33.375 / 102.77, Z −87.15 / 170.37 | 2 mm inside the hard stops (also in `[AXIS_*]`) |
+| `MIN_LIMIT`, `MAX_LIMIT` | X −222.11 / 177.855, Y −33.375 / 102.77, Z −87.15 / 160.5 | 2 mm inside the hard stops (also in `[AXIS_*]`); Z max is lower, at 160.5, because the head meets the gears and chains near the upper stop |
 
 `[COFFEECNC] REFERENCE_MARKS = yes` tells CoffeeCNC that `coffeecnc_g0759_postgui.hal` connects
 `ready` and `at-mark`: it refuses Home for an axis whose mark is not known and shows the axis
