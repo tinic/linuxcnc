@@ -108,12 +108,14 @@ travel. All three axes were homed on the machine and stood on their latched mark
 count afterwards. A first homing after a restart of the encoder board also went through:
 the marks were found again by moving each axis across its mark, and all three axes homed.
 
-One crossing of a mark is not always one pulse: while a program moved X slowly over its
-mark, `rp2040-encoder.0.ref-count-0` rose by about 250 within 0.1 mm. `refmark` only looks
-for a change of the count, clears the index at the first one, and keeps the position of the
-last edge as the mark, so that the mark it uses can lie up to about 0.07 mm from the edge
-homing stopped on. That does not matter for the derived switch, which closes 3 mm before
-the mark.
+With encoder firmware v3.0.0 one crossing of a mark was not always one pulse: while a
+program moved X slowly over its mark, `rp2040-encoder.0.ref-count-0` rose by about 100 in
+one pass. `refmark` only looks for a change of the count and clears the index at the first
+one, so homing was not affected; the mark it kept was the last of those edges, up to about
+0.07 mm from the edge homing had stopped on. The firmware the machine runs since then counts
+the first edge only and ignores the input until the axis has left the mark: in two runs with
+jogs, homing and a program with arcs and a helix, every count change of X, Y and Z was by
+one.
 
 Not exercised: the fault for an index search that passes its mark, and a stall during a
 home move (the scales are the position feedback, so that should end in a following error).
