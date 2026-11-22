@@ -1,0 +1,141 @@
+# Post-GUI HAL file of the G0759 under CoffeeCNC: [HAL] POSTGUI_HALFILE of G0759-coffeecnc.ini.
+# coffeecnc runs it once its HAL component 'coffeecnc' exists. It takes the place of
+# postgui_call_list.hal and custom_postgui.hal, which connect gmoccapy pins and cannot load
+# without gmoccapy; neither is read under CoffeeCNC. rpm.hal (the embedded rpm.glade meter of
+# gmoccapy) is not loaded either.
+#
+# Module loads: G0759.hal and custom.hal load trivkins, motmod, hostmot2, hm2_eth, pid, near,
+# scale, abs, not and limit1. Neither watchdog nor lut5 is among them, so both load here. A file
+# added to [HAL] HALFILE later that loads one of them must take these instances into its own
+# loadrt line, and the two loadrt lines here must go.
+# Nothing in G0759.hal or custom.hal connects motion.jog-stop, motion.jog-inhibit,
+# iocontrol.0.tool-change, tool-changed or tool-prep-number: each gets its only connection here.
+
+# ---- CoffeeCNC's own fragment: the commands of share/coffeecnc/hal/coffeecnc_postgui.hal of
+# ---- CoffeeCNC 0.1.0, in its order and unchanged. The thread is this machine's servo-thread.
+
+# Jog stop without the NML command channel. motion.jog-stop aborts every jog in motion while it
+# is high; motion.jog-inhibit refuses a jog before it starts. Both are high while coffeecnc asks
+# for a stop (coffeecnc.jog-stop), or the watchdog has tripped because coffeecnc.heartbeat
+# stopped toggling: the program died or stalled.
+loadrt watchdog num_inputs=1
+loadrt lut5 names=coffeecnc-jog-stop,coffeecnc-jog-inhibit,probe-route,probe-route-setter,probe-permit,jog-contact,eoffset-gate
+addf watchdog.process servo-thread
+addf watchdog.set-timeouts servo-thread
+addf coffeecnc-jog-stop servo-thread
+addf coffeecnc-jog-inhibit servo-thread
+addf probe-route servo-thread
+addf probe-route-setter servo-thread
+addf probe-permit servo-thread
+addf jog-contact servo-thread
+
+setp watchdog.timeout-0 0.3
+setp coffeecnc-jog-stop.function 0xD
+setp coffeecnc-jog-inhibit.function 0xD
+net coffeecnc-heartbeat coffeecnc.heartbeat => watchdog.input-0
+net coffeecnc-watchdog-enable coffeecnc.watchdog-enable => watchdog.enable-in
+net coffeecnc-watchdog-ok watchdog.ok-out => coffeecnc.watchdog-ok
+net coffeecnc-watchdog-ok => coffeecnc-jog-stop.in-0 coffeecnc-jog-inhibit.in-0
+net coffeecnc-jog-stop-request coffeecnc.jog-stop => coffeecnc-jog-stop.in-1
+net coffeecnc-jog-stop-request => coffeecnc-jog-inhibit.in-1
+net coffeecnc-jog-stop coffeecnc-jog-stop.out => motion.jog-stop
+net coffeecnc-jog-inhibit coffeecnc-jog-inhibit.out => motion.jog-inhibit
+
+# Manual tool change: coffeecnc asks the operator and answers iocontrol itself. No
+# hal_manualtoolchange is loaded. The two unlinkp lines do nothing on this machine (the pins are
+# not connected before this file runs); they are the fragment's.
+unlinkp iocontrol.0.tool-change
+unlinkp iocontrol.0.tool-changed
+net coffeecnc-tool-change iocontrol.0.tool-change => coffeecnc.tool-change
+net coffeecnc-tool-number iocontrol.0.tool-prep-number => coffeecnc.tool-number
+net coffeecnc-tool-changed coffeecnc.tool-changed => iocontrol.0.tool-changed
+
+# ---- This machine.
+
+# From custom_postgui.hal: a prepared tool needs no action.
+net tool-prep-loop iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
+
+# Signals of G0759.hal, declared in [COFFEECNC] of the INI file. Each already has its writer
+# there; coffeecnc only reads.
+net spindle-vel-fb-rpm-abs => coffeecnc.spindle-rpm
+net spindle-at-speed => coffeecnc.spindle-at-speed
+net probe-in => coffeecnc.probe-input
+
+# Probe routing (PR43). G0759.hal routes the ruby probe while tool 99 is loaded, else the setter.
+# coffeecnc.probe-setter-select forces the setter: mux select = tool 99 AND NOT setter-select
+# (lut5 0x2). coffeecnc.probe-setter-selected reads back the select actually in use: NOT mux
+# select (lut5 0x1).
+unlinkp mux-gen.00.sel-bit-00
+setp probe-route.function 0x2
+setp probe-route-setter.function 0x1
+net ruby-probe-loaded => probe-route.in-0
+net probe-setter-select coffeecnc.probe-setter-select => probe-route.in-1
+net probe-route-ruby probe-route.out => mux-gen.00.sel-bit-00 probe-route-setter.in-0
+net probe-setter-selected probe-route-setter.out => coffeecnc.probe-setter-selected
+
+# Probe-cycle permit: high while no cycle is active, or while the cycle's lease and the CoffeeCNC
+# watchdog are both high. in-0 active, in-1 lease, in-2 watchdog ok: 0xD5. The permit drives
+# motion.enable and, with the physical E-stop chain (estop-ok: input-16 AND setter overtravel
+# input-17), iocontrol.0.emc-enable-in, and is read back on coffeecnc.probe-motion-permitted.
+setp probe-permit.function 0xD5
+net probe-cycle-active coffeecnc.probe-cycle-active => probe-permit.in-0
+net probe-cycle-lease coffeecnc.probe-cycle-lease => probe-permit.in-1
+net coffeecnc-watchdog-ok => probe-permit.in-2
+net probe-motion-permitted probe-permit.out => motion.enable probe-estop-gate.in1 coffeecnc.probe-motion-permitted
+unlinkp iocontrol.0.emc-enable-in
+net estop-ok => probe-estop-gate.in0
+net estop-gated probe-estop-gate.out => iocontrol.0.emc-enable-in
+
+# Jog stop on contact (not E-stop). A jog stops the moment the setter's first contact
+# (input-19) opens, or the ruby probe (input-18) opens while tool 99 is loaded: jog-contact is
+# setter-tripped OR (ruby-tripped AND ruby-probe-loaded), lut5 0xEA. Only the rising edge stops,
+# as a 20 ms pulse on coffeecnc-jog-stop.in-2, so the operator can jog away while the contact
+# is still held. coffeecnc-jog-stop becomes NOT watchdog-ok OR stop request OR contact (0xFD).
+# motion.jog-stop affects jogs only; programs, MDI and probe cycles are unchanged.
+loadrt edge names=jog-contact-edge
+addf jog-contact-edge servo-thread
+setp jog-contact.function 0xEA
+setp jog-contact-edge.in-edge TRUE
+setp jog-contact-edge.out-width-ns 20000000
+setp coffeecnc-jog-stop.function 0xFD
+net setter-tripped => jog-contact.in-0
+net ruby-tripped => jog-contact.in-1
+net ruby-probe-loaded => jog-contact.in-2
+net jog-contact-now jog-contact.out => jog-contact-edge.in
+net jog-contact-stop jog-contact-edge.out => coffeecnc-jog-stop.in-2
+
+# CoffeeCNC reports "Jog stopped: probe contact" from this level (coffeecnc PR79).
+net jog-contact-now => coffeecnc.jog-contact
+
+# Jog while paused: CoffeeCNC lifts Z through an external offset while a program is paused and
+# returns it to zero before Resume. It enables the offset only while paused.
+# One count is 0.001 mm (machine units are mm).
+setp axis.z.eoffset-scale 0.001
+# The offset is enabled only while CoffeeCNC asks for it, its watchdog is OK, the program is
+# paused (HALUI), the spindle is off and no jog stop is held. in-0 request, in-1 watchdog ok,
+# in-2 paused, in-3 spindle on, in-4 jog stop: true only for 1,1,1,0,0 (index 7), 0x80.
+addf eoffset-gate servo-thread
+setp eoffset-gate.function 0x80
+net coffeecnc-eoffset-z-enable coffeecnc.eoffset-z-enable => eoffset-gate.in-0
+net coffeecnc-watchdog-ok => eoffset-gate.in-1
+net program-paused halui.program.is-paused => eoffset-gate.in-2
+net spindle-enable => eoffset-gate.in-3
+net coffeecnc-jog-stop => eoffset-gate.in-4
+net eoffset-z-enabled eoffset-gate.out => axis.z.eoffset-enable
+net coffeecnc-eoffset-z-counts coffeecnc.eoffset-z-counts => axis.z.eoffset-counts
+net coffeecnc-eoffset-z-clear coffeecnc.eoffset-z-clear => axis.z.eoffset-clear
+net eoffset-z axis.z.eoffset => coffeecnc.eoffset-z
+net eoffset-active motion.eoffset-active => coffeecnc.eoffset-active
+net eoffset-limited motion.eoffset-limited => coffeecnc.eoffset-limited
+
+# ---- Reference marks ([COFFEECNC] REFERENCE_MARKS): true once refmark_homing.hal knows where
+# ---- the axis's mark is, so that homing can go to it from either side.
+net x-mark-found refmark.x.ready => coffeecnc.reference-mark-x
+net y-mark-found refmark.y.ready => coffeecnc.reference-mark-y
+net z-mark-found refmark.z.ready => coffeecnc.reference-mark-z
+# True while the axis stands within refmark.N.window (2 mm) of its mark: the Home button of
+# the axis is marked, also with the machine off, so that an axis moved by hand can be stopped
+# at its mark.
+net x-at-mark refmark.x.at-mark => coffeecnc.at-reference-mark-x
+net y-at-mark refmark.y.at-mark => coffeecnc.at-reference-mark-y
+net z-at-mark refmark.z.at-mark => coffeecnc.at-reference-mark-z
