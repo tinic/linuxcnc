@@ -1,0 +1,48 @@
+# Homing on the glass scales' reference (R) marks. Loaded after custom.hal, which loads
+# rp2040_encoder. See src/refmark.comp for how the single mark of each scale becomes a
+# home switch plus index, and G0759-coffeecnc.ini [JOINT_n] for the homing moves.
+#
+# An axis can be homed once its mark has been crossed since the encoder box was powered
+# (refmark.N.ready). Homing before that, or an index search that overruns the mark, raises
+# an amplifier fault on the joint instead of driving to the end of travel.
+
+loadrt refmark names=refmark.x,refmark.y,refmark.z
+# Ahead of the motion functions, so they read this cycle's switch and index state.
+addf refmark.z servo-thread 1
+addf refmark.y servo-thread 1
+addf refmark.x servo-thread 1
+
+net encoder-connected <= rp2040-encoder.0.connected
+net encoder-connected => refmark.x.connected refmark.y.connected refmark.z.connected
+
+net x-pos-fb          => refmark.x.position
+net x-ref-count       <= rp2040-encoder.0.ref-count-0    => refmark.x.ref-count
+net x-ref-position    <= rp2040-encoder.0.ref-position-0 => refmark.x.ref-position
+net x-homing          <= joint.0.homing                  => refmark.x.homing
+net x-index-enable    <=> joint.0.index-enable
+net x-index-enable    <=> refmark.x.index-enable
+net x-home-sw         <= refmark.x.home-sw
+net x-home-fault      <= refmark.x.fault                 => joint.0.amp-fault-in
+
+net y-pos-fb          => refmark.y.position
+net y-ref-count       <= rp2040-encoder.0.ref-count-1    => refmark.y.ref-count
+net y-ref-position    <= rp2040-encoder.0.ref-position-1 => refmark.y.ref-position
+net y-homing          <= joint.1.homing                  => refmark.y.homing
+net y-index-enable    <=> joint.1.index-enable
+net y-index-enable    <=> refmark.y.index-enable
+net y-home-sw         <= refmark.y.home-sw
+net y-home-fault      <= refmark.y.fault                 => joint.1.amp-fault-in
+
+net z-pos-fb          => refmark.z.position
+net z-ref-count       <= rp2040-encoder.0.ref-count-2    => refmark.z.ref-count
+net z-ref-position    <= rp2040-encoder.0.ref-position-2 => refmark.z.ref-position
+net z-homing          <= joint.2.homing                  => refmark.z.homing
+net z-index-enable    <=> joint.2.index-enable
+net z-index-enable    <=> refmark.z.index-enable
+net z-home-sw         <= refmark.z.home-sw
+net z-home-fault      <= refmark.z.fault                 => joint.2.amp-fault-in
+
+# The home switch closes this far before the mark, on the side the search comes from (mm).
+setp refmark.x.approach 3.0
+setp refmark.y.approach 3.0
+setp refmark.z.approach 3.0

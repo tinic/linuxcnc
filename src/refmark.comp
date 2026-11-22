@@ -1,0 +1,129 @@
+component refmark "Home switch and index handshake for a linear scale with one reference mark";
+
+description """
+A glass scale with a single reference (R) mark gives no hint, at power-up, on which side of
+the mark the axis stands, so an index search cannot know which way to go. This component
+remembers where the mark is once the encoder interface has seen it (the axis was jogged or
+moved across it) and from then on behaves like a home switch that is closed on one whole side
+of the mark:
+
+  home-sw = position > mark - approach          (reverse = 0, search in the + direction)
+  home-sw = position < mark + approach          (reverse = 1, search in the - direction)
+
+LinuxCNC's ordinary switch homing ([JOINT_n] HOME_SEARCH_VEL, HOME_LATCH_VEL with the same
+sign, HOME_USE_INDEX = YES, HOME_INDEX_NO_ENCODER_RESET = YES) then finds the switch edge from
+either side and creeps the last `approach` units onto the mark, always in the same direction.
+The index handshake is done here: index-enable is cleared in the servo cycle in which the
+reference count changes. The encoder count is never reset, so the remembered mark stays valid
+for as long as the encoder interface keeps counting.
+
+A mark is only taken over when it is believable. At a pulse seen here, the latched position
+must lie within `tolerance` of where the axis is at that moment; a mark that fails this (the
+encoder count was reset, the interface did not deliver the latched position) makes the axis
+not ready until the mark is crossed again. A count that is already there when the interface
+connects (LinuxCNC restarted, the encoder kept counting) is taken over with its latched
+position, which is exactly 0 only when the interface has not delivered it.
+
+fault is raised (connect it to joint.N.amp-fault-in) when homing starts although the mark is
+not known yet, and when the index search runs more than `approach` past the mark without a
+pulse. Both would otherwise send the axis to its end of travel.
+""";
+
+pin in float position "Encoder position, in the units and sign of the joint's motor-pos-fb";
+pin in unsigned ref_count "Number of reference pulses seen by the encoder interface";
+pin in float ref_position "Encoder position latched at the latest reference pulse, same frame as position";
+pin in bit connected "The encoder interface is connected and counting";
+pin in bit homing "joint.N.homing";
+pin io bit index_enable "Index handshake shared with joint.N.index-enable";
+pin in float approach = 3.0 "Distance before the mark at which the home switch closes";
+pin in bit reverse = 0 "Search and final approach in the negative direction";
+pin in float tolerance = 3.0 "Largest believable distance between a latched mark and the axis when its pulse is seen";
+pin out bit home_sw "Virtual home switch, for joint.N.home-sw-in";
+pin out bit ready "The mark has been seen: homing can find it from either side";
+pin in float window = 2.0 "at-mark is true within this distance of the mark";
+pin out bit at_mark "The axis stands at the mark, within window: for an operator moving it by hand";
+pin out bit fault "Homing without a known mark, or index search past the mark";
+pin out float mark "Encoder position of the reference mark in use";
+
+variable unsigned last_count = 0;
+variable int have_mark = 0;
+variable int armed = 0;
+variable int pending = 0;
+variable long waited = 0;
+variable long linked = 0;
+variable double pulse_position = 0;
+
+function _;
+license "GPL";
+author "tinic";
+;;
+
+#include <rtapi_math.h>
+
+/* The encoder interface publishes ref-position one USB round trip after ref-count. */
+#define SETTLE_NS 200000000L
+/* How long a pulse waits for a latched position that fits it. */
+#define GIVE_UP_NS 2000000000L
+/* After the interface connects, its first count is what it already had, not a pulse. */
+#define TAKE_OVER_NS 1000000000L
+
+enum { NOTHING, TAKE_OVER, PULSE };
+
+FUNCTION(_) {
+    unsigned count = ref_count;
+
+    if (!connected)
+        linked = 0;
+    else if (linked < TAKE_OVER_NS)
+        linked += period;
+
+    if (count != last_count) {
+        /* A pulse while the joint has been waiting for one: the index. */
+        if (index_enable && armed && count != 0)
+            index_enable = 0;
+        last_count = count;
+        waited = 0;
+        if (count == 0) {
+            /* The interface restarted: its count and the mark it latched are gone. */
+            have_mark = 0;
+            pending = NOTHING;
+        } else if (linked < TAKE_OVER_NS) {
+            pending = TAKE_OVER;
+        } else {
+            pending = PULSE;
+            pulse_position = position;
+        }
+    }
+    armed = index_enable;
+
+    if (pending != NOTHING) {
+        waited += period;
+        if (waited >= SETTLE_NS) {
+            if (pending == TAKE_OVER) {
+                if (ref_position != 0.0) {
+                    mark = ref_position;
+                    have_mark = 1;
+                    pending = NOTHING;
+                }
+            } else if (fabs(ref_position - pulse_position) <= tolerance) {
+                mark = ref_position;
+                have_mark = 1;
+                pending = NOTHING;
+            } else if (waited >= GIVE_UP_NS) {
+                have_mark = 0;
+                pending = NOTHING;
+            }
+        }
+    }
+
+    ready = have_mark && connected;
+    at_mark = ready && fabs(position - mark) <= window;
+
+    if (reverse) {
+        home_sw = ready && position < mark + approach;
+        fault = (homing && !ready) || (ready && armed && position < mark - approach);
+    } else {
+        home_sw = ready && position > mark - approach;
+        fault = (homing && !ready) || (ready && armed && position > mark + approach);
+    }
+}

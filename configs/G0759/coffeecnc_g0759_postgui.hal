@@ -127,3 +127,15 @@ net coffeecnc-eoffset-z-clear coffeecnc.eoffset-z-clear => axis.z.eoffset-clear
 net eoffset-z axis.z.eoffset => coffeecnc.eoffset-z
 net eoffset-active motion.eoffset-active => coffeecnc.eoffset-active
 net eoffset-limited motion.eoffset-limited => coffeecnc.eoffset-limited
+
+# ---- Reference marks ([COFFEECNC] REFERENCE_MARKS): true once refmark_homing.hal knows where
+# ---- the axis's mark is, so that homing can go to it from either side.
+net x-mark-found refmark.x.ready => coffeecnc.reference-mark-x
+net y-mark-found refmark.y.ready => coffeecnc.reference-mark-y
+net z-mark-found refmark.z.ready => coffeecnc.reference-mark-z
+# True while the axis stands within refmark.N.window (2 mm) of its mark: the Home button of
+# the axis is marked, also with the machine off, so that an axis moved by hand can be stopped
+# at its mark.
+net x-at-mark refmark.x.at-mark => coffeecnc.at-reference-mark-x
+net y-at-mark refmark.y.at-mark => coffeecnc.at-reference-mark-y
+net z-at-mark refmark.z.at-mark => coffeecnc.at-reference-mark-z
